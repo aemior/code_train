@@ -1,5 +1,5 @@
 #include <iostream>
-#include <cstdio>
+//#include <cstdio>
 #include <vector>
 #include <map>
 #include <string>
@@ -37,7 +37,7 @@ void gate::clean(){
 
 bool dfs(std::vector<gate>& all_gates, std::vector<int> &check_flg, std::set<int> &father, int tar){
     for(std::set<int>::iterator j = all_gates[tar].all_output.begin(); j != all_gates[tar].all_output.end(); j++){
-        if(!check_flg[*j]){
+        if(!check_flg[*j])
             if(father.count(*j)) return true;
             else{
                 int n_tar = *j;
@@ -46,7 +46,6 @@ bool dfs(std::vector<gate>& all_gates, std::vector<int> &check_flg, std::set<int
                 if(res) return true;
             }
         check_flg[*j] = true;
-        }
     }
     father.insert(tar);
     check_flg[tar] = true;
@@ -61,6 +60,17 @@ bool check_loop(std::vector<gate>& all_gates){
             }
         }
     }
+    //debug
+    /*
+    for(int i=0; i<all_gates.size(); i++){
+            std::cout << "#DEBUG gates:" << i << ':';
+        for(std::set<int>::iterator j = all_gates[i].all_output.begin(); j != all_gates[i].all_output.end(); j++){
+            std::cout << ' ' << *j;
+        }
+        std::cout << std::endl;
+    }
+    */
+
     std::vector<int> check_flg(all_gates.size(), false);
     for(int i=0; i<check_flg.size(); i++){
         if(!check_flg[i]){
@@ -84,6 +94,7 @@ void clean_all(std::vector<gate> &all_gates){
 
 bool get_output(std::vector<gate>& all_gates, std::vector<bool> &all_inputs, int tar){
     if(!all_gates[tar].is_buff){
+        //std::cout << "##DEBUG" << all_gates[tar].func << ' ' << tar << std::endl;
         if(all_gates[tar].func == "NOT"){
             if(all_gates[tar].all_input[0][0] == 'I'){
                 all_gates[tar].buff = !all_inputs[atoi(all_gates[tar].all_input[0].substr(1).c_str())-1];
@@ -186,6 +197,7 @@ bool get_output(std::vector<gate>& all_gates, std::vector<bool> &all_inputs, int
         }
     }
     all_gates[tar].is_buff = true;
+    //std::cout << all_gates[tar].buff << "<<\n";
     return all_gates[tar].buff;
 }
 
@@ -193,7 +205,7 @@ bool get_output(std::vector<gate>& all_gates, std::vector<bool> &all_inputs, int
 
 int main()
 {
-    freopen("test3.txt", "r", stdin);
+    //freopen("test2.txt", "r", stdin);
     int Q;
     std::cin >> Q;
     for(int i=0; i<Q; i++){
@@ -212,6 +224,16 @@ int main()
                 gate tmp_gate(func, k, inputs);
                 all_gates.push_back(tmp_gate);
         }
+        //debug
+        /*
+        for(int j=0;j<all_gates.size();j++){
+            std::cout << all_gates[j].func << std::endl;
+            for(int k=0; k<all_gates[j].all_input.size();k++){
+                std::cout << ' ' << all_gates[j].all_input[k] << ' ' << atoi(all_gates[j].all_input[k].substr(1).c_str());
+            }
+            std::cout << std::endl;
+        }
+        */
         std::vector<std::vector<bool> > s_inputs;
         std::cin >> S;
         bool tmp_single;
@@ -240,11 +262,9 @@ int main()
                 std::cin >> o_p;
                 for(int k=0; k<o_p; k++){
                     std::cin >> curr;
-                    if(qus_flg){
-                        bool debug_res  = get_output(all_gates, s_inputs[j], curr-1);
-                        if(debug_res) std::cout << "1 ";
-                        else std::cout << "0 ";
-                    }
+                    bool debug_res  = get_output(all_gates, s_inputs[j], curr-1);
+                    if(debug_res) std::cout << "1 ";
+                    else std::cout << "0 ";
                 }
                 std::cout << std::endl;
 
@@ -252,5 +272,15 @@ int main()
         }
 
     }
+    /*
+    Net min_net(all_gates);
+    if(min_net.check_loop()){
+        std::cout << "LOOP" << std::endl;
+    }
+    else{
+        std::cout << "NEXT" << std::endl;
+    }
+    */
     return 0;
 }
+
