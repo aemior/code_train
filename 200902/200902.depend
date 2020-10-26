@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1603341273 source:c:\users\asus\desktop\code_train\200902\main.cpp
+	<iostream>
+	<cstdio>
+	<vector>
+
