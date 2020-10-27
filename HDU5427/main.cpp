@@ -6,14 +6,17 @@ int main()
 {
     freopen("test.txt", "r", stdin);
     int T,N,tmp_age;
-    string tmp_name;
+    string buff;
     cin >> T;
     for(int i=0; i<T; i++){
         cin >> N;
         map<int, string> tmp_map;
+        getline(cin, buff);
         for(int j=0; j<N; j++){
-            cin >>tmp_name >> tmp_age;
-            tmp_map[tmp_age] = tmp_name;
+            getline(cin, buff);
+            cout << "#DEBUG: " << buff << endl;
+            tmp_age = atoi(buff.substr(buff.size()-4,4).c_str());
+            tmp_map[tmp_age] = buff.substr(0,buff.size()-5);
         }
         for(map<int, string>::reverse_iterator iter = tmp_map.rbegin();iter!=tmp_map.rend(); iter++ ){
             cout << iter->second << endl;
