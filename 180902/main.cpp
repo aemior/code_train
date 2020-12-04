@@ -24,16 +24,12 @@ int main()
         W.push_back(vt);
     }
     long long T=0;
-    for(;pi <n;){
-        if(pj>=n) break;
-        for(;pj<n;){
-
+    for(;pi <n;pi++){
+        for(pj=0;pj<n;pj++){
             if(W[pj][1] < H[pi][0]){
-                pj++;
                 continue;
             }
             else if(W[pj][0] > H[pi][1]){
-                pi++;
                 break;
             }
             else{
@@ -44,7 +40,6 @@ int main()
                 tp.push_back(H[pi][1]);
                 sort(tp.begin(), tp.end());
                 T = T + (tp[2]-tp[1]);
-                pj++;
             }
         }
     }
