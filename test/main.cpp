@@ -2,33 +2,38 @@
 
 using namespace std;
 
+bool mycmp(int i, int j);
+
+class CTestCmp {
+public:
+        bool operator() (int i, int j) {
+                //return !!(lc.num < rc.num);
+                return i>j;
+        }
+};
+
+
 int main()
 {
-    int n = 1234790324;
-    vector<int> stk;
-    while(n>0){
-        cout << ' ' << n%10;
-        stk.push_back(n%10);
-        n=n/10;
-    }
-    string ttstr;
-    char buf[100];
+    int a[] = {1,5,7,8,2,2,6};
+    vector<int> v(a, a+7);
+    for(int i=0; i<v.size(); i++)
+        cout << v[i] << ' ';
     cout << endl;
-    for(vector<int>::iterator it=stk.begin(); it != stk.end(); it++){
+    sort(v.begin(), v.end(), mycmp);
+    set<int, CTestCmp> s;
+    for(int i=0; i<v.size(); i++){
+        cout << v[i] << ' ';
+        s.insert(v[i]);
+    }
+    cout << endl << "+++++++++++++"<< endl;
+    for(set<int>::iterator it = s.begin(); it != s.end(); it++){
         cout << *it << ' ';
-        sprintf(buf,"%d", *it);
-        string tpstr(buf);
-        ttstr = ttstr + tpstr;
     }
     cout << endl;
-    cout << ttstr << endl;
-    long long o;
-    int a,b;
-    float c;
-    sscanf(ttstr.c_str(), "%Ld", &o);
-    sscanf("12 34 56.69","%d%d%f", &a,&b,&c);
-    cout << "Hello world! " << o << endl;
-    cout << a << ' ' << b << ' ' << c << endl;
-    printf("%.2f", c);
     return 0;
+}
+
+bool mycmp(int i, int j){
+    return i>j;
 }

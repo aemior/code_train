@@ -59,3 +59,32 @@ while(n>0){
     n=n/10;}
 ```
 
+### C++98数组初始化vector
+
+```c++
+int int_array[] = {1, 2, 3, 4}; 
+vector<int> vec_int(int_array, int_array+4);
+```
+
+### sort函数用法
+
+```c++
+int a[] = {1,5,7,8,2,2,6};
+vector<int> v(a, a+7);
+sort(v.begin(), v.end(), mycmp);
+sort(a, a+7, mycmp);
+```
+
+### set函数用法
+
+```c++
+class CTestCmp {
+public:
+        bool operator() (int i, int j) {
+                //return !!(lc.num < rc.num);
+                return i>j;
+        }
+};
+set<int, CTestCmp> s;
+```
+
