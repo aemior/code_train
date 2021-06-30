@@ -2,245 +2,157 @@
 
 using namespace std;
 
+map<string, int> InitialHPs = {{"dragon", 0},
+								{"ninja", 0},
+								{"iceman", 0},
+								{"lion", 0},
+								{"wolf", 0}};
+map<string, int> warrID = {{"dragon", 0},
+							{"ninja", 1},
+							{"iceman", 2},
+							{"lion", 3},
+							{"wolf", 4}};
+
 class Warrior{
-    public:
-        //virtual Warrior(){number++; id = number;}
-        virtual int getID();
-        virtual string getType();
-        static int InitialHP;
-        virtual int getInitialHP();
-    private:
-        static int number;
-        int id;
-        string Type;
+public:
+	Warrior(const string &type):Type(type), HP(InitialHPs[type]){}
+	string getType();
+	int getHP();
+private:
+	static int number;
+	int HP;
+	string Type;
 };
 
-
-int Warrior::getID(){
-    return this->id+1;
-}
-
 string Warrior::getType(){
-    return this->Type;
+return Type;
 }
 
-int Warrior::getInitialHP(){
-    return this->InitialHP;
+int Warrior::getHP(){
+return HP;
 }
-
 
 class dragon:public Warrior{
-    private:
-        string Type = "dragon";
-        static int number;
-        int id;
-    public:
-        dragon(){number++; id = number;}
-        ~dragon(){number--;}
-        int getInitialHP();
-        string getType();
-        int getID();
-        static int InitialHP;
+private:
+	static int number;
+public:
+	dragon():Warrior("dragon"){number++;}
+	~dragon(){number--;}
 };
 
 class ninja:public Warrior{
-    private:
-        string Type = "ninja";
+private:
         static int number;
-        int id;
     public:
-        ninja(){number++; id = number;}
+        ninja():Warrior("ninja"){number++;}
         ~ninja(){number--;}
-        static int InitialHP;
-        int getInitialHP();
-        string getType();
-        int getID();
 };
 
 class iceman:public Warrior{
     private:
-        string Type = "iceman";
         static int number;
-        int id;
     public:
-        iceman(){number++; id = number;}
+        iceman():Warrior("iceman"){number++;}
         ~iceman(){number--;}
-        static int InitialHP;
-        int getInitialHP();
-        string getType();
-        int getID();
 };
 
 class lion:public Warrior{
     private:
-        string Type = "lion";
         static int number;
-        int id;
     public:
-        lion(){number++; id = number;}
+        lion():Warrior("lion"){number++;}
         ~lion(){number--;}
-        static int InitialHP;
-        int getInitialHP();
-        string getType();
-        int getID();
 };
 
 class wolf:public Warrior{
     private:
-        string Type = "wolf";
         static int number;
-        int id;
     public:
-        wolf(){number++; id = number;}
+        wolf():Warrior("wolf"){number++;}
         ~wolf(){number--;}
-        static int InitialHP;
-        int getInitialHP();
-        string getType();
-        int getID();
 };
 
-
-int dragon::getID(){
-    return this->id;
-}
-string dragon::getType(){
-    return this->Type;
-}
-int dragon::getInitialHP(){
-    return this->InitialHP;
-}
-
-int iceman::getID(){
-    return this->id;
-}
-string iceman::getType(){
-    return this->Type;
-}
-int iceman::getInitialHP(){
-    return this->InitialHP;
-}
-
-int ninja::getID(){
-    return this->id;
-}
-string ninja::getType(){
-    return this->Type;
-}
-int ninja::getInitialHP(){
-    return this->InitialHP;
-}
-
-int wolf::getID(){
-    return this->id;
-}
-string wolf::getType(){
-    return this->Type;
-}
-int wolf::getInitialHP(){
-    return this->InitialHP;
-}
-
-int lion::getID(){
-    return this->id;
-}
-string lion::getType(){
-    return this->Type;
-}
-int lion::getInitialHP(){
-    return this->InitialHP;
-}
 
 
 class headquarter{
     public:
-        headquarter(int m_get, string side_get){
-            M = m_get;
-            side = side_get;
-        }
+        headquarter(int m_get, string side_get):M(m_get), side(side_get) {}
         ~headquarter(){
             for(int i=0; i<warriors.size(); i++){
                 delete warriors[i];
             }
         }
-        string getSide();
-        bool triMF();
-        bool isRun();
-        void setOrder(vector<string> order_get);
-        int countWarrior(string type);
+        void setOrder(vector<string> &order_get);
         static void setMthr();
+        string getSide();
+        bool isRun();
+        int countWarrior(const string &type);
+        bool triMF();
     private:
-        Warrior * MakeWarrior(string type_get);
-        int M, curr_order=-1;
+        Warrior * MakeWarrior(const string &type_get);
+        int M, curr_Morder=-1;
         static int Mthr;
         bool runFlag = true;
         string side;
-        vector<string> order;
+		map<string, int> warrCNT;
+        vector<string> Morder;
         vector<Warrior*> warriors;
 };
+
+void headquarter::setOrder(vector<string> &order_get){
+    Morder = order_get;
+}
+
+void headquarter::setMthr(){
+	Mthr = 1 << 30;
+	for (map<string, int>::iterator it=InitialHPs.begin();
+		 it != InitialHPs.end(); ++it) {
+		Mthr = min(Mthr, it->second);
+	}
+}
 
 string headquarter::getSide(){
     return side;
 }
 
-void headquarter::setOrder(vector<string> order_get){
-    order = order_get;
-}
-
 bool headquarter::isRun(){return runFlag;}
 
-int Warrior::InitialHP = 99;
-int dragon::InitialHP;
-int ninja::InitialHP;
-int iceman::InitialHP;
-int lion::InitialHP;
-int wolf::InitialHP;
-int dragon::number = 0;
-int iceman::number = 0;
-int ninja::number = 0;
-int lion::number = 0;
-int wolf::number = 0;
+int headquarter::countWarrior(const string &type){
+	if (warrCNT.find(type) != warrCNT.end()) {
+		return warrCNT[type];
+	}
+	else {
+		return 0;
+	}
+};
 
-int headquarter::Mthr;
 
-void headquarter::setMthr(){
-    Mthr = min(dragon::InitialHP, ninja::InitialHP);
-    Mthr = min(Mthr, iceman::InitialHP);
-    Mthr = min(Mthr, lion::InitialHP);
-    Mthr = min(Mthr, wolf::InitialHP);
-}
 
-int headquarter::countWarrior(string type){
-    int res = 0;
-    for(int i=0; i<warriors.size(); i++){
-        if(warriors[i]->getType() == type) res++;
-    }
-    return res;
-}
-
-Warrior * headquarter::MakeWarrior(string type_get){
-    if(type_get == "dragon" && M >= dragon::InitialHP){
-        M = M - dragon::InitialHP;
-        return new dragon();
-    }
-    else if(type_get == "ninja" && M >= ninja::InitialHP){
-        M = M - ninja::InitialHP;
-        return new ninja();
-    }
-    else if(type_get == "iceman" && M >= iceman::InitialHP){
-        M = M - iceman::InitialHP;
-        return new iceman();
-    }
-    else if(type_get == "lion" && M >= lion::InitialHP){
-        M = M - lion::InitialHP;
-        return new lion();
-    }
-    else if(type_get == "wolf" && M >= wolf::InitialHP){
-        M = M - wolf::InitialHP;
-        return new wolf();
-    }
-    else{
-        return nullptr;
-    }
+Warrior * headquarter::MakeWarrior(const string &type_get){
+	if (M >= InitialHPs[type_get]) {
+		M = M - InitialHPs[type_get];
+		switch (warrID[type_get])
+		{
+		case 0:
+			return new dragon();
+			break;
+		case 1:
+			return new ninja();
+			break;
+		case 2:
+			return new iceman();
+			break;
+		case 3:
+			return new lion();
+			break;
+		case 4:
+			return new wolf();
+			break;
+		default:
+			break;
+		}
+	}
+	return NULL;
 }
 
 bool headquarter::triMF(){
@@ -251,21 +163,27 @@ bool headquarter::triMF(){
     }
     Warrior* tmp;
     while(true){
-        if(curr_order == (order.size()-1)){
-            curr_order = 0;
+        if(curr_Morder == (Morder.size()-1)){
+            curr_Morder = 0;
         }
         else{
-            curr_order++;
+            curr_Morder++;
         }
-        tmp = MakeWarrior(order[curr_order]);
+        tmp = MakeWarrior(Morder[curr_Morder]);
         if(tmp){
             warriors.push_back(tmp);
-            cout << side << ' ' << order[curr_order]
+			if (warrCNT.find(tmp->getType()) != warrCNT.end()) {
+				warrCNT[tmp->getType()] += 1;
+			}
+			else {
+				warrCNT[tmp->getType()] = 1;
+			}
+            cout << side << ' ' << Morder[curr_Morder]
                 << ' ' << warriors.size()
                 << ' ' << "born with strength "
-                << tmp->getInitialHP() << ','
-                << countWarrior(order[curr_order])
-                << ' ' << order[curr_order] <<" in "
+                << tmp->getHP() << ','
+                << countWarrior(Morder[curr_Morder])
+                << ' ' << Morder[curr_Morder] <<" in "
                 << side << " headquarter" << endl;
             return true;
         }
@@ -273,8 +191,17 @@ bool headquarter::triMF(){
 
 }
 
+vector<string> redOrder = {"iceman", "lion", "wolf", "ninja", "dragon"};
+vector<string> blueOrder = {"lion", "dragon", "ninja", "iceman", "wolf"};
 
+int Warrior::number = 0;
+int dragon::number = 0;
+int iceman::number = 0;
+int ninja::number = 0;
+int lion::number = 0;
+int wolf::number = 0;
 
+int headquarter::Mthr;
 
 int main()
 {
@@ -284,15 +211,15 @@ int main()
     for(int i=0; i<N; i++){
         cout << "Case:" << i+1 << endl;
         cin >> M;
-        cin >> dragon::InitialHP
-            >> ninja::InitialHP
-            >> iceman::InitialHP
-            >> lion::InitialHP
-            >> wolf::InitialHP;
+        cin >> InitialHPs["dragon"]
+            >> InitialHPs["ninja"]
+            >> InitialHPs["iceman"]
+            >> InitialHPs["lion"]
+            >> InitialHPs["wolf"];
         headquarter::setMthr();
         headquarter red(M, "red"),blue(M, "blue");
-        red.setOrder({"iceman", "lion", "wolf", "ninja", "dragon"});
-        blue.setOrder({"lion", "dragon", "ninja", "iceman", "wolf"});
+        red.setOrder(redOrder);
+        blue.setOrder(blueOrder);
         int event=0;
         cout << setfill('0');
         while(red.isRun() || blue.isRun()){

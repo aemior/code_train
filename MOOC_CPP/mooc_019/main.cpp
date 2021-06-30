@@ -71,7 +71,7 @@ class MyString
 				o << ms.data;
 			return o;
 		}
-		MyString & operator=(MyString  ms){
+		MyString & operator=(const MyString &ms){
 			replaceString(ms.data, ms.len);
 			return *this;
 		}
