@@ -2,7 +2,7 @@
 
 using namespace std;
 
-float poland(){
+double poland(){
 	char buf[40];
 	cin >> buf;
 	switch (buf[0])
@@ -16,13 +16,13 @@ float poland(){
 	case '/':
 		return poland() / poland();
 	default:
+		return atof(buf);
 		break;
 	}
-	return atof(buf);
 }
 
 int main(){
-	float v = poland();
+	double v = poland();
 	printf("%f\n", v);
 	return 0;
 }
