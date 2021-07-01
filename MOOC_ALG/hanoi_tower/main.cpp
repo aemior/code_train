@@ -36,8 +36,6 @@ void hanoi(int n, const char &S, const char &M, const char &D){
 	}
 }
 
-
-
 int main() {
 	cin >> N;
 	t['A'] = new int[N];
