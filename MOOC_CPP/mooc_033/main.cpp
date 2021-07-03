@@ -16,36 +16,25 @@ bool Greater3(double d1,double d2)
 
 template <class T1,class T2>
 void mysort(T1 *s, T1 *e, bool (*p)(T2, T2)) {
-	if (s == (e-1)) return;
-	T1 *a = s;
-	T1 *b = e;
-	T1 tmp;
+	if ((e-s) < 2) return;
+	T1 *a = s, *b = e, tmp;
+	bool FLG = true;
 	while (s != e) {
 		do {
-			--e;
-		} while ((*p)(*s, *e) && s != e); 
-		if (s == e) {
-			break;
-		} else {
-			tmp = *s;
-			*s = *e;
-			*e = tmp;
-		}
-		do {
-			++s;
-		} while ((*p)(*s, *e) && s != e); 
-		if (s == e) {
-			break;
-		} else {
+			if (FLG)
+				--e;
+			else
+				++s;
+		} while ((*p)(*s, *e) && s != e);
+		FLG = !FLG; 
+		if (s != e) {
 			tmp = *s;
 			*s = *e;
 			*e = tmp;
 		}
 	}
-	if (a != s)
-		mysort(a, s, p);
-	if (++s != b)
-		mysort(s, b, p);
+	mysort(a, s, p);
+	mysort(++s, b, p);
 }
 // 在此处补充你的代码
 #define NUM 5
