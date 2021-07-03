@@ -1,7 +1,6 @@
 #include <iostream>
 using namespace std;
 int main () {
-	freopen("test.txt", "r", stdin);
 	int N;
 	cin >> N;
 	cin.get();
