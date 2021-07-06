@@ -37,8 +37,8 @@ void myout(int i){
 }
 
 int main() {
-	freopen("input.txt", "r", stdin);
-	freopen("out.txt", "w", stdout);
+	//freopen("input.txt", "r", stdin);
+	//freopen("out.txt", "w", stdout);
 	int N, i1, i2;
 	string cmd;
 	cin >> N;
