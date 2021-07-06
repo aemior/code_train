@@ -4,7 +4,7 @@ using namespace std;
 map<int, int> data;
 int main (){
 	data[1000000000] = 1; 
-	freopen("test.txt", "r", stdin);
+	//freopen("test.txt", "r", stdin);
 	typedef map<int ,int>::iterator III;
 	int N, a, b;
 	cin >> N;
