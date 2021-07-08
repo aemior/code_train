@@ -39,19 +39,6 @@ int IsTheNumber ( const int N ){
 		} else {
 			return 0;
 		}
-		/*
-        t = 1;
-        tmp = t*t;
-        while (tmp <= N) {
-            if (tmp == N) {
-				//printf("%d %d\n", N, t);
-				return 1;
-			}
-            t++;
-            tmp = t*t;
-        }
-        return 0;
-		*/
     } else {
         return 0;
     }
