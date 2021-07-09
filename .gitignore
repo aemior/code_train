@@ -116,4 +116,5 @@ mian
 *.cbp
 *.layout
 .vscode/
+Debug
 
