@@ -2,6 +2,26 @@
 
 using namespace std;
 
+//======================================================
+
+template<class T1>
+void modeVector(vector<T1> &v, bool(*p)(T1)){
+	bool FLG = true;
+	while (FLG) {
+		FLG = false;
+		for (auto it = v.begin(); it != v.end(); ++it) {
+			if (p(*it)) {
+				v.erase(it);
+				FLG = true;
+				break;
+			}
+		}
+	}
+}
+
+bool equ2(int i) {
+	return i==2;
+}
 
 //======================================================
 
@@ -10,8 +30,6 @@ class weaponEnd;
 class Warrior;
 class warriorEnd;
 class City;
-bool cmpweapon(Weapon *w1, Weapon *w2);
-bool cmpwarrior(Warrior *w1, Warrior *w2);
 void printTime();
 
 //======================================================
@@ -50,8 +68,9 @@ vector<string> blueOrder = {"lion", "dragon", "ninja", "iceman", "wolf"};
 class Weapon{
 	public:
 		Weapon(){};
-		Weapon(const string &type):Type(type) {}
-		virtual weaponEnd Attack(int power, Warrior *target);
+		~Weapon(){}
+		Weapon(const string &type, Warrior *h):Type(type), holder(h){}
+		virtual weaponEnd Attack(int power, Warrior *target) = 0;
 		string getType();
 		Warrior *holder;
 		friend class weaponEnd;
@@ -62,8 +81,8 @@ class Weapon{
 
 class Warrior{
 	public:
-		Warrior(const string &type, int idget, int wpnum, string side):Type(type), HP(InitialHPs[type]),
-		ID(idget), WpNum(wpnum), Side(side) {
+		Warrior(const string &type, int idget, int wpnum, string side, City *ipos):Type(type), HP(InitialHPs[type]),
+		ID(idget), WpNum(wpnum), Side(side), pos(ipos) {
 			number++;
 		};
 		~Warrior(){
@@ -86,6 +105,8 @@ class Warrior{
 		bool useWeapon(Warrior *target);
 		virtual void marchTo(City *tar);
 		void report();
+		void captureWeapons(Warrior *tar);
+		void lostWeapon(Weapon *tar);
 	private:
 		static int number;
 		int ID;
@@ -96,6 +117,9 @@ class Warrior{
 		string Type;
 		City *pos;
 };
+
+bool cmpweapon(Weapon *w1, Weapon *w2);
+bool cmpwarrior(Warrior *w1, Warrior *w2);
 
 
 class City{
@@ -157,7 +181,8 @@ string Weapon::getType(){
 
 class sword:public Weapon{
 	public:
-		sword():Weapon::Weapon("sword"){}
+		sword(Warrior *h):Weapon::Weapon("sword", h){}
+		~sword(){}
 		weaponEnd Attack(int power, Warrior *target) {
 			target->hurt(int(power*0.2));
 			++use;
@@ -166,17 +191,20 @@ class sword:public Weapon{
 };
 class bomb:public Weapon{
 	public:
-		bomb():Weapon::Weapon("bomb"){}
+		bomb(Warrior *h):Weapon::Weapon("bomb", h){}
+		~bomb(){}
 		weaponEnd Attack(int power, Warrior *target) {
-			target->hurt(int(power*0.2));
-			Weapon::holder->hurt(int(power*0.4)/2);
+			target->hurt(int(power*0.4));
+			if (holder->getType() != "ninja")
+				Weapon::holder->hurt(int(power*0.4)/2);
 			++use;
 			return weaponEnd(this, Weapon::holder, true);
 		}
 };
 class arrow:public Weapon{
 	public:
-		arrow():Weapon::Weapon("arrow"){}
+		arrow(Warrior *h):Weapon::Weapon("arrow", h){}
+		~arrow(){}
 		weaponEnd Attack(int power, Warrior *target) {
 			target->hurt(int(power*0.3));
 			++use;
@@ -213,13 +241,13 @@ void Warrior::newWeapon(int wpid){
 	switch (wpid)
 	{
 	case 0:
-		tmp = new sword;
+		tmp = new sword(this);
 		break;
 	case 1:
-		tmp = new bomb;
+		tmp = new bomb(this);
 		break;
 	case 2:
-		tmp = new arrow;
+		tmp = new arrow(this);
 		break;
 	default:
 		break;
@@ -243,6 +271,13 @@ bool Warrior::useWeapon(Warrior *t) {
 }
 
 void Warrior::marchTo(City *tar) {
+	for (auto it=pos->warriors.begin(); it != pos->warriors.end(); ++it) {
+		if ((*it) == this) {
+			pos->warriors.erase(it);
+			break;
+		}
+	}
+	sortWeapon();
 	pos = tar;
 	pos->warriors.push_back(this);
 	printTime();
@@ -252,9 +287,56 @@ void Warrior::marchTo(City *tar) {
 
 void Warrior::report() {
 	int a=0,b=0,c=0;
+	for (auto it = weapon.begin(); it != weapon.end(); ++it) {
+		if ((*it)->getType() == "sword") {
+			++a;
+		} else if ((*it)->getType() == "bomb") {
+			++b;
+		} else {
+			++c;
+		}
+	}
 	printTime();
-	cout << Side << ' ' << Type << ' ' << ID << " has "
+	cout << Side << ' ' << Type << ' ' << ID << " has " <<
 	a << " sword " << b << " bomb " << c << " arrow and " << HP << " elements" << endl; 
+}
+
+void Warrior::lostWeapon(Weapon *tar) {
+	for (auto it=weapon.begin(); it != weapon.end(); ++it) {
+		if (*it == tar) {
+			weapon.erase(it);
+			return;
+		}
+	}
+}
+
+void Warrior::captureWeapons(Warrior *tar) {
+	set<Weapon*> weaponTrans;
+	int totalWeapon = weapon.size();
+	for (auto it=tar->weapon.begin(); it != tar->weapon.end(); ++it) {
+		if (totalWeapon < 10) {
+			if ((*it)->getType() == "arrow") {
+				if (((arrow*)(*it))->use > 1) {
+					weaponTrans.insert(*it);
+					++totalWeapon;
+				}
+			} else {
+				weaponTrans.insert(*it);
+				++totalWeapon;
+			}
+		}
+	}
+	for (auto it=tar->weapon.begin(); it != tar->weapon.end(); ++it) {
+		if (totalWeapon < 10) {
+			++totalWeapon;
+			weaponTrans.insert(*it);
+		}
+	}
+	for (auto it=weaponTrans.begin(); it !=weaponTrans.end(); ++it) {
+		tar->lostWeapon(*it);
+		(*it)->holder = this;
+		weapon.push_back(*it);
+	}
 }
 
 class dragon:public Warrior{
@@ -262,7 +344,7 @@ private:
 	static int number;
 	float morale;
 public:
-	dragon(int idget, int hm, string side):Warrior("dragon", idget, 1, side){
+	dragon(int idget, int hm, string side, City *ipos):Warrior("dragon", idget, 1, side, ipos){
 		morale = float(hm) / float(InitialHPs["dragon"]);
 		Warrior::newWeapon(idget%3);
 		number++;
@@ -270,9 +352,10 @@ public:
 	~dragon(){
 		number--;
 	}
-	void showINFO(){
-		cout << "It has a " << weapon[0]->getType() 
-		<< ",and it's morale is " << fixed << setprecision(2) << morale << endl;
+	void yelled(){
+		printTime();
+		cout << Warrior::getSide() << " dragon " << Warrior::getID() << " yelled in city "
+		<< (getpos())->ID << endl;
 	}
 };
 
@@ -280,31 +363,38 @@ class ninja:public Warrior{
 private:
         static int number;
     public:
-        ninja(int idget, string side):Warrior("ninja", idget, 2, side){
+        ninja(int idget, string side, City *ipos):Warrior("ninja", idget, 2, side, ipos){
 			Warrior::newWeapon(idget%3);
 			Warrior::newWeapon((idget+1)%3);
 			number++;
 		}
         ~ninja(){number--;}
+	/*
 	void showINFO(){
 		cout << "It has a " << weapon[0]->getType() << " and a "
 		<< weapon[1]->getType() << endl;
 	}
+	*/
 };
 
 class iceman:public Warrior{
     private:
         static int number;
     public:
-        iceman(int idget, string side):Warrior("iceman", idget, 1, side){
+        iceman(int idget, string side, City *ipos):Warrior("iceman", idget, 1, side, ipos){
 			Warrior::newWeapon(idget%3);
 			number++;
 		}
         ~iceman(){number--;}
+		/*
 		void showINFO(){
 			cout << "It has a " << weapon[0]->getType() << endl;
 		}
-		void marchTo()
+		*/
+		void marchTo(City *tar){
+			hurt(getHP()*0.1);
+			Warrior::marchTo(tar);
+		}
 };
 
 class lion:public Warrior{
@@ -312,13 +402,18 @@ class lion:public Warrior{
         static int number;
 		int loyalty;
     public:
-        lion(int idget, int hm, string side):Warrior("lion", idget, 0, side){
+        lion(int idget, int hm, string side, City *ipos):Warrior("lion", idget, 0, side, ipos){
+			Warrior::newWeapon(idget%3);
 			loyalty = hm; 
 			number++;
 		}
         ~lion(){number--;}
 		void showINFO(){
-			cout << "It's loyalty is " << loyalty << endl;
+			cout << "Its loyalty is " << loyalty << endl;
+		}
+		void marchTo(City *tar) {
+			Warrior::marchTo(tar);
+			loyalty -= K;
 		}
 		warriorEnd run() {
 			if (loyalty <= 0) {
@@ -333,32 +428,37 @@ class wolf:public Warrior{
     private:
         static int number;
     public:
-        wolf(int idget, string side):Warrior("wolf", idget, 0, side){number++;}
+        wolf(int idget, string side, City *ipos):Warrior("wolf", idget, 0, side, ipos){number++;}
         ~wolf(){number--;}
 		void Rob(Warrior *tar) {
-			if (tar->getType() ==  "wolf" || tar->weapon.empty() || weapon.size() == 10) return;
-			int minID = weaponID[tar->weapon[0]->getType()];
-			int CNT=0;
-			if (minID == 2) {
-				auto it = tar->weapon.begin();
-				for(;it != tar->weapon.end();++it) {
-					if (weaponID[(*it)->getType()] != 2) break;
+			if (tar->getType() ==  "wolf" || tar->weapon.empty() || weapon.size() >= 10) return;
+			int totalWeapons = weapon.size(), CNT=0;
+			string robType = tar->weapon[0]->getType();
+			set<Weapon*> Trans;
+			for (auto it=tar->weapon.begin(); it!=tar->weapon.end(); ++it) {
+				if ((*it)->getType() == robType && totalWeapons < 10) {
+					if ((*it)->getType() == "arrow") {
+						if ((*it)->use < 1) {
+							Trans.insert(*it);
+							++totalWeapons;
+							++CNT;
+						}
+					} else {
+						++totalWeapons;
+						Trans.insert(*it);
+					}
 				}
-				--it;
-				while (it >= tar->weapon.begin() && weapon.size() < 10) {
+			}
+			for (auto it=tar->weapon.begin(); it!=tar->weapon.end(); ++it) {
+				if ((*it)->getType() == robType && totalWeapons < 10) {
+					Trans.insert(*it);
+					++totalWeapons;
 					++CNT;
-					weapon.push_back(*it);
-					tar->weapon.erase(it);
-					--it;
 				}
-			} else {
-				auto it = tar->weapon.begin();
-				while (it != tar->weapon.end() && weapon.size() < 10) {
-					++CNT;
-					weapon.push_back(*it);
-					tar->weapon.erase(it);
-					++it;
-				}
+			}
+			for (auto it=Trans.begin(); it !=Trans.end(); ++it) {
+				weapon.push_back(*it);
+				tar->lostWeapon(*it);
 			}
 			printTime();
 			cout << getSide() << " wolf " << getID() << " took " << CNT << " bomb from "
@@ -371,7 +471,7 @@ class wolf:public Warrior{
 
 void City::waReport(){
 	sort(warriors.begin(), warriors.end(), cmpwarrior);
-	for (auto it = warriors.begin(); it != warriors.end()) {
+	for (auto it = warriors.begin(); it != warriors.end(); ++it) {
 		(*it)->report();
 	}
 }
@@ -438,19 +538,19 @@ Warrior * headquarter::MakeWarrior(const string &type_get){
 		switch (warrID[type_get])
 		{
 		case 0:
-			return new dragon(newID, M, side);
+			return new dragon(newID, M, side, this);
 			break;
 		case 1:
-			return new ninja(newID, side);
+			return new ninja(newID, side, this);
 			break;
 		case 2:
-			return new iceman(newID, side);
+			return new iceman(newID, side, this);
 			break;
 		case 3:
-			return new lion(newID, M, side);
+			return new lion(newID, M, side, this);
 			break;
 		case 4:
-			return new wolf(newID, side);
+			return new wolf(newID, side, this);
 			break;
 		default:
 			break;
@@ -486,7 +586,10 @@ bool headquarter::triMF(){
                 << ' ' << newID << " born" << endl;
 			tmp->showINFO();
             return true;
-        }
+        } else {
+			runFlag = false;
+			return false;
+		}
     }
 }
 
@@ -497,8 +600,8 @@ bool cmpweapon(Weapon *w1, Weapon *w2) {
 		return weaponID[w1->getType()] < weaponID[w2->getType()];
 	}
 }
-bool cmpwarrior(Warrior *w1, Warrior *w1) {
-	if (w1->getType() == "red") retrun true;
+bool cmpwarrior(Warrior *w1, Warrior *w2) {
+	if (w1->getType() == "red") return true;
 	return false;
 }
 
@@ -508,6 +611,7 @@ int iceman::number = 0;
 int ninja::number = 0;
 int lion::number = 0;
 int wolf::number = 0;
+int City::number = 0;
 
 int headquarter::Mthr;			
 
@@ -520,11 +624,9 @@ void printTime() {
 
 void newWarrios(){
 	if (RedHQ->isRun()) {
-		printTime();
 		RedHQ->triMF();
 	}
 	if (BlueHQ->isRun()) {
-		printTime();
 		BlueHQ->triMF();
 	}
 }
@@ -536,43 +638,81 @@ void lionRun(){
 			(p->run())();
 		}
 	}
+	for (int j=0; j<N; ++j) {
+		for (int i=0; i<(citys+j)->warriors.size(); ++i) {
+			if ((citys+j)->warriors[i]->getType() == "lion") {
+				lion *p = (lion*)((citys+j)->warriors[i]);
+				(p->run())();
+			}
+		}
+	}
+	for (int i=0; i<BlueHQ->warriors.size(); ++i) {
+		if (BlueHQ->warriors[i]->getType() == "lion") {
+			lion *p = (lion*)(BlueHQ->warriors[i]);
+			(p->run())();
+		}
+	}
 }
 
-void warriorsMarch() {
-	for (auto it=RedHQ->warriors.begin(); it != RedHQ->warriors.end(); ++it) {
-		if ((*it)->getSide() == "red") {
-			(*it)->marchTo(citys);
-			RedHQ->warriors.erase(it);
+class marchEvent{
+	private:
+		Warrior *W;
+		City *C;
+	public:
+		int P;
+		marchEvent(Warrior *w, City *c, int p):W(w), C(c), P(p){}
+		void operator()()const {
+			W->marchTo(C);
+		}
+};
+
+struct cmpMarchEvent{
+	bool operator()(const marchEvent &m1, const marchEvent &m2)const {
+		return m1.P > m2.P;
+	}
+};
+
+bool warriorsMarch() {
+	bool flg = false;
+	priority_queue<marchEvent, vector<marchEvent>,cmpMarchEvent> q;
+	for (int i=0; i<RedHQ->warriors.size(); ++i) {
+		if (RedHQ->warriors[i]->getSide() == "red") {
+			q.push(marchEvent(RedHQ->warriors[i], citys, 0));
 		}
 	}
-	for (auto it=BlueHQ->warriors.begin(); it != BlueHQ->warriors.end(); ++it) {
-		if ((*it)->getSide() == "blue") {
-			(*it)->marchTo(citys+(N-1));
-			BlueHQ->warriors.erase(it);
-		}
-	}
-	for (int i=0; i<N; ++i) {
-		for (auto it=(citys+i)->warriors.begin(); it != (citys+i)->warriors.end(); ++it) {
-			if ((*it)->getSide() == "red") {
-				if (i = (N-1)) {
-					(*it)->marchTo(BlueHQ);
+	for (int i=N-1; i>=0; --i) {
+		for (int j=0; j<(citys+i)->warriors.size(); ++j){
+			if ((citys+i)->warriors[j]->getSide() == "red") {
+				if (i == (N-1)) {
+					q.push(marchEvent((citys+i)->warriors[j], BlueHQ, (N+1)*10));
 					printTime();
 					cout << "blue headquarter was taken" << endl;
+					flg = true;
+				} else {
+					q.push(marchEvent((citys+i)->warriors[j], citys+i+1, (i+2)*10));
 				}
-				else
-					(*it)->marchTo(citys+i+1);
 			} else {
-				if (i = 0) {
-					(*it)->marchTo(RedHQ);
+				if (i == 0) {
+					q.push(marchEvent((citys+i)->warriors[j], RedHQ, 1));
 					printTime();
 					cout << "red headquarter was taken" << endl;
+					flg = true;
+				} else {
+					q.push(marchEvent((citys+i)->warriors[j], citys+i-1, i*10+1));
 				}
-				else
-					(*it)->marchTo(citys+i-1);
 			}
-			(citys+i)->warriors.erase(it);
 		}
 	}
+	for (int i=0; i<BlueHQ->warriors.size(); ++i) {
+		if (BlueHQ->warriors[i]->getSide() == "blue") {
+			q.push(marchEvent(BlueHQ->warriors[i], citys+N-1, N*10+1));
+		}
+	}
+	while (q.size()) {
+		(q.top())();
+		q.pop();
+	}
+	return flg;
 }
 
 void wolfRob() {
@@ -590,27 +730,44 @@ void wolfRob() {
 }
 
 void warriorFight(Warrior *wr, Warrior *wb) {
-	for (int i=0; i<20; ++i) {
-		wr->useWeapon(wb);
-		if (wr->getHP() <=0 || wb->getHP() <=0) break;
-		wb->useWeapon(wr);
-		if (wr->getHP() <=0 || wb->getHP() <=0) break;
+	if (wr->getpos()->ID % 2 || wr->getpos()->ID == 1) {
+		for (int i=0; i<20; ++i) {
+			wr->useWeapon(wb);
+			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+			wb->useWeapon(wr);
+			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+		}
+	} else {
+		for (int i=0; i<20; ++i) {
+			wb->useWeapon(wr);
+			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+			wr->useWeapon(wb);
+			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+		}
 	}
 	printTime();
 	if (wr->getHP() <=0 && wb->getHP() <=0) {
 		cout << "both red " << wr->getType() << ' ' << wr->getID() << " and blue "
 		<< wb->getType() << ' ' << wb->getID() << " died in city " << wb->getpos()->ID << endl;
-	} else if (wr->getHP() >=0 && wb->getHP() >=0) {
+	} else if (wr->getHP() >0 && wb->getHP() >0) {
 		cout << "both red " << wr->getType() << ' ' << wr->getID() << " and blue "
 		<< wb->getType() << ' ' << wb->getID() << " were alive in city " << wb->getpos()->ID << endl;
-	} else if (wr->getHP() >=0) {
+	} else if (wr->getHP() >0) {
 		cout << "red " << wr->getType() << ' ' << wr->getID() << " killed blue " << wb->getType()
 		<< ' ' << wb->getID() << " in city " << wr->getpos()->ID << " remaining " << wr->getHP()
 		<< " elements" << endl;
+		wr->captureWeapons(wb);
 	} else {
 		cout << "blue " << wb->getType() << ' ' << wb->getID() << " killed red " << wr->getType()
 		<< ' ' << wr->getID() << " in city " << wb->getpos()->ID << " remaining " << wb->getHP()
 		<< " elements" << endl;
+		wb->captureWeapons(wr);
+	}
+	if (wr->getType() == "dragon" && wr->getHP() > 0) {
+		((dragon*)wr)->yelled();
+	}
+	if (wb->getType() == "dragon" && wb->getHP() > 0) {
+		((dragon*)wb)->yelled();
 	}
 	warriorEnd(wr, wr->getpos(), wr->getHP() <= 0)();
 	warriorEnd(wb, wb->getpos(), wb->getHP() <= 0)();
@@ -645,6 +802,9 @@ void warriorReport() {
 
 
 int main () {
+	//freopen("datapub.in", "r", stdin);
+	freopen("case_1_in.txt", "r", stdin);
+	freopen("case_1_out.txt", "w", stdout);
 	cin >> tnum;
 	for (int i=0; i<tnum; ++i) {
 		cout << "Case " << i+1 << ':' << endl;
@@ -672,33 +832,32 @@ int main () {
 			switch (now%60)
 			{
 			case 0:
+				newWarrios();
 				now += 5;
-				RedHQ->triMF();
-				BlueHQ->triMF();
 				break;
 			case 5:
-				now += 5;
 				lionRun();
+				now += 5;
 				break;
 			case 10:
-				now += 25;
 				warriorsMarch();
+				now += 25;
 				break;
 			case 35:
-				now += 5;
 				wolfRob();
+				now += 5;
 				break;
 			case 40:
-				now += 10;
 				warriorsFight();
+				now += 10;
 				break;
 			case 50:
-				now += 5;
 				HQreport();
+				now += 5;
 				break;
 			case 55:
-				now += 5;
 				warriorReport();
+				now += 5;
 				break;
 			default:
 				break;
