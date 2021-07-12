@@ -124,6 +124,7 @@ bool cmpwarrior(Warrior *w1, Warrior *w2);
 
 class City{
 	public:
+		string type = "city";
 		static int number;
 		vector<Warrior*> warriors;
 		int ID;
@@ -281,8 +282,19 @@ void Warrior::marchTo(City *tar) {
 	pos = tar;
 	pos->warriors.push_back(this);
 	printTime();
+	if (pos->type != "city") {
+		cout << Side << ' ' << Type <<  ' ' << ID << " reached ";
+		if (Side == "red") {cout << "blue headquarter with ";}
+		else {cout << "red headquarter with ";}
+		cout << HP << " elements and force " << Powers[Type] << endl;
+		printTime();
+		if (Side == "red") cout << "blue";
+		else cout << "red";
+		cout << " headquarter was taken" << endl;
+	} else {
 	cout << Side << ' ' << Type <<  ' ' << ID << " marched to city "
 	<< tar->ID << " with " << HP << " elements and force " << Powers[Type] << endl;
+	}
 }
 
 void Warrior::report() {
@@ -434,35 +446,34 @@ class wolf:public Warrior{
 			if (tar->getType() ==  "wolf" || tar->weapon.empty() || weapon.size() >= 10) return;
 			int totalWeapons = weapon.size(), CNT=0;
 			string robType = tar->weapon[0]->getType();
-			set<Weapon*> Trans;
-			for (auto it=tar->weapon.begin(); it!=tar->weapon.end(); ++it) {
-				if ((*it)->getType() == robType && totalWeapons < 10) {
-					if ((*it)->getType() == "arrow") {
-						if ((*it)->use < 1) {
-							Trans.insert(*it);
-							++totalWeapons;
-							++CNT;
-						}
-					} else {
-						++totalWeapons;
-						Trans.insert(*it);
+			vector<Weapon*> Trans;
+			vector<bool> robflg(tar->weapon.size(),false);
+			for (int i=0; i<tar->weapon.size(); ++i) {
+				if (tar->weapon[i]->getType() == robType && totalWeapons < 10 && !robflg[i]) {
+					if (tar->weapon[i]->getType() == "arrow" && tar->weapon[i]->use) {
+						continue;
 					}
+					Trans.push_back(tar->weapon[i]);
+					++totalWeapons;
+					robflg[i] = true;
 				}
 			}
-			for (auto it=tar->weapon.begin(); it!=tar->weapon.end(); ++it) {
-				if ((*it)->getType() == robType && totalWeapons < 10) {
-					Trans.insert(*it);
+			for (int i=0; i<tar->weapon.size(); ++i) {
+				if (tar->weapon[i]->getType() == robType && totalWeapons < 10 && !robflg[i]) {
+					Trans.push_back(tar->weapon[i]);
 					++totalWeapons;
-					++CNT;
+					robflg[i] = true;
 				}
 			}
 			for (auto it=Trans.begin(); it !=Trans.end(); ++it) {
 				weapon.push_back(*it);
+				++CNT;
+				(*it)->holder = this;
 				tar->lostWeapon(*it);
 			}
 			printTime();
-			cout << getSide() << " wolf " << getID() << " took " << CNT << " bomb from "
-			<< tar->getSide() << ' ' << tar->getType() << " in city " << getpos()->ID << endl;
+			cout << getSide() << " wolf " << getID() << " took " << CNT << ' ' << robType << " from "
+			<< tar->getSide() << ' ' << tar->getType() << ' '<< tar->getID() << " in city " << getpos()->ID << endl;
 		}
 	void showINFO(){
 		return;
@@ -478,7 +489,9 @@ void City::waReport(){
 
 class headquarter:public City{
     public:
-        headquarter(int m_get, string side_get):M(m_get), side(side_get) {}
+        headquarter(int m_get, string side_get):M(m_get), side(side_get) {
+			City::type = "headquarter";
+		}
         ~headquarter(){
             for(int i=0; i<warriors.size(); i++){
                 delete warriors[i];
@@ -684,18 +697,14 @@ bool warriorsMarch() {
 		for (int j=0; j<(citys+i)->warriors.size(); ++j){
 			if ((citys+i)->warriors[j]->getSide() == "red") {
 				if (i == (N-1)) {
-					q.push(marchEvent((citys+i)->warriors[j], BlueHQ, (N+1)*10));
-					printTime();
-					cout << "blue headquarter was taken" << endl;
+					q.push(marchEvent((citys+i)->warriors[j], BlueHQ, 100005));
 					flg = true;
 				} else {
 					q.push(marchEvent((citys+i)->warriors[j], citys+i+1, (i+2)*10));
 				}
 			} else {
 				if (i == 0) {
-					q.push(marchEvent((citys+i)->warriors[j], RedHQ, 1));
-					printTime();
-					cout << "red headquarter was taken" << endl;
+					q.push(marchEvent((citys+i)->warriors[j], RedHQ, 100000));
 					flg = true;
 				} else {
 					q.push(marchEvent((citys+i)->warriors[j], citys+i-1, i*10+1));
@@ -730,6 +739,10 @@ void wolfRob() {
 }
 
 void warriorFight(Warrior *wr, Warrior *wb) {
+	if (wr->getpos()->ID == 5 && wr->getType() == "wolf" && wr->getID() == 8 && wb->getType() == "dragon"){
+		int a=0;
+		int b=a;
+	}
 	if (wr->getpos()->ID % 2 || wr->getpos()->ID == 1) {
 		for (int i=0; i<20; ++i) {
 			wr->useWeapon(wb);
@@ -826,9 +839,11 @@ int main () {
         RedHQ->setOrder(redOrder);
         BlueHQ->setOrder(blueOrder);
         int event=0;
+		bool anyWin = false;
         cout << setfill('0');
 		now = 0;
 		while (now <= T) {
+			if (anyWin) break;
 			switch (now%60)
 			{
 			case 0:
@@ -840,7 +855,7 @@ int main () {
 				now += 5;
 				break;
 			case 10:
-				warriorsMarch();
+				anyWin = warriorsMarch();
 				now += 25;
 				break;
 			case 35:
