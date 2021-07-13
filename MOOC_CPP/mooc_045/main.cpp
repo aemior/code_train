@@ -131,6 +131,14 @@ class City{
 		City(){
 			ID = ++number;
 		}
+		~City(){
+			--number;
+			if (warriors.size()) {
+				for (int i=0; i<warriors.size(); ++i) {
+					delete warriors[i];
+				}
+			}
+		}
 		void waReport();
 };
 
@@ -257,6 +265,7 @@ void Warrior::newWeapon(int wpid){
 }
 
 void Warrior::sortWeapon(){
+	WpIdx = 0;
 	sort(weapon.begin(), weapon.end(), cmpweapon);
 }
 
@@ -323,25 +332,25 @@ void Warrior::lostWeapon(Weapon *tar) {
 }
 
 void Warrior::captureWeapons(Warrior *tar) {
-	set<Weapon*> weaponTrans;
+	vector<Weapon*> weaponTrans;
 	int totalWeapon = weapon.size();
-	for (auto it=tar->weapon.begin(); it != tar->weapon.end(); ++it) {
-		if (totalWeapon < 10) {
-			if ((*it)->getType() == "arrow") {
-				if (((arrow*)(*it))->use > 1) {
-					weaponTrans.insert(*it);
-					++totalWeapon;
-				}
+	vector<bool> capFLG(tar->weapon.size(), false);
+	for (int i=0; i<tar->weapon.size(); ++i) {
+		if (totalWeapon < 10 && !capFLG[i]) {
+			if (tar->weapon[i]->getType() == "arrow" && tar->weapon[i]->use) {
+				continue;
 			} else {
-				weaponTrans.insert(*it);
+				weaponTrans.push_back(tar->weapon[i]);
+				capFLG[i] = true;
 				++totalWeapon;
 			}
 		}
 	}
-	for (auto it=tar->weapon.begin(); it != tar->weapon.end(); ++it) {
-		if (totalWeapon < 10) {
+	for (int i=0; i<tar->weapon.size(); ++i) {
+		if (totalWeapon < 10 && !capFLG[i]) {
+			weaponTrans.push_back(tar->weapon[i]);
+			capFLG[i] = true;
 			++totalWeapon;
-			weaponTrans.insert(*it);
 		}
 	}
 	for (auto it=weaponTrans.begin(); it !=weaponTrans.end(); ++it) {
@@ -430,7 +439,7 @@ class lion:public Warrior{
 		warriorEnd run() {
 			if (loyalty <= 0) {
 				printTime();
-				cout << Warrior::getSide() << " lion " << Warrior::getID() << "ran away" << endl; 
+				cout << Warrior::getSide() << " lion " << Warrior::getID() << " ran away" << endl; 
 			}
 			return warriorEnd(this, Warrior::getpos(), loyalty <= 0);
 		}
@@ -492,11 +501,6 @@ class headquarter:public City{
         headquarter(int m_get, string side_get):M(m_get), side(side_get) {
 			City::type = "headquarter";
 		}
-        ~headquarter(){
-            for(int i=0; i<warriors.size(); i++){
-                delete warriors[i];
-            }
-        }
         void setOrder(vector<string> &order_get);
         static void setMthr();
         string getSide();
@@ -704,7 +708,7 @@ bool warriorsMarch() {
 				}
 			} else {
 				if (i == 0) {
-					q.push(marchEvent((citys+i)->warriors[j], RedHQ, 100000));
+					q.push(marchEvent((citys+i)->warriors[j], RedHQ, -100));
 					flg = true;
 				} else {
 					q.push(marchEvent((citys+i)->warriors[j], citys+i-1, i*10+1));
@@ -739,23 +743,34 @@ void wolfRob() {
 }
 
 void warriorFight(Warrior *wr, Warrior *wb) {
-	if (wr->getpos()->ID == 5 && wr->getType() == "wolf" && wr->getID() == 8 && wb->getType() == "dragon"){
+	if (wr->getpos()->ID == 2 && wr->getType() == "ninja" && wr->getID() == 9 && wb->getType() == "dragon"){
 		int a=0;
 		int b=a;
 	}
+	int rHP, bHP,HPcnt = 0;
 	if (wr->getpos()->ID % 2 || wr->getpos()->ID == 1) {
-		for (int i=0; i<20; ++i) {
+		while (true) {
+			rHP = wr->getHP();
+			bHP = wb->getHP();
 			wr->useWeapon(wb);
 			if (wr->getHP() <=0 || wb->getHP() <=0) break;
 			wb->useWeapon(wr);
 			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+			if (wr->weapon.size() == 0 && wb->weapon.size() ==0) break;
+			if (rHP == wr->getHP() && bHP == wb->getHP()) HPcnt++;
+			if (HPcnt > 42) break;
 		}
 	} else {
-		for (int i=0; i<20; ++i) {
+		while (true) {
+			rHP = wr->getHP();
+			bHP = wb->getHP();
 			wb->useWeapon(wr);
 			if (wr->getHP() <=0 || wb->getHP() <=0) break;
 			wr->useWeapon(wb);
 			if (wr->getHP() <=0 || wb->getHP() <=0) break;
+			if (wr->weapon.size() == 0 && wb->weapon.size() ==0) break;
+			if (rHP == wr->getHP() && bHP == wb->getHP()) HPcnt++;
+			if (HPcnt > 42) break;
 		}
 	}
 	printTime();
@@ -816,8 +831,7 @@ void warriorReport() {
 
 int main () {
 	//freopen("datapub.in", "r", stdin);
-	freopen("case_1_in.txt", "r", stdin);
-	freopen("case_1_out.txt", "w", stdout);
+	//freopen("output.txt", "w", stdout);
 	cin >> tnum;
 	for (int i=0; i<tnum; ++i) {
 		cout << "Case " << i+1 << ':' << endl;
@@ -881,6 +895,9 @@ int main () {
 		if (N) delete []citys;
 		delete BlueHQ;
 		delete RedHQ;
+		if (City::number) {
+			string flg = "not pass";
+		}
 	}
 
 
