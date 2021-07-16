@@ -65,7 +65,7 @@ void delTree(BinTree root) {
 }
 
 int main () {
-	freopen("test.txt", "r", stdin);
+	//freopen("test.txt", "r", stdin);
 	while (cin.peek() != '0') {
 		int L, N;
 		cin >> L >> N;
