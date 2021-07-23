@@ -47,22 +47,24 @@ int main()
             if (Tmp==MaxP) printf("%d is the largest key\n", Tmp->Data);
         }
     }
-    printf("Inorder:"); InorderTraversal(BST); printf("\n");
     scanf("%d", &N);
     for( i=0; i<N; i++ ) {
         scanf("%d", &X);
-        printf("%d\n", X);
+        //printf("%d\n", X);
         BST = Delete(BST, X);
-        printf("Inorder:"); InorderTraversal(BST); printf("\n");
-        printf("Preorder:"); PreorderTraversal(BST); printf("\n");
-        printf("\n");
+        //printf("Inorder:"); InorderTraversal(BST); printf("\n");
+        //printf("Preorder:"); PreorderTraversal(BST); printf("\n");
+        //printf("\n");
     }
     printf("Inorder:"); InorderTraversal(BST); printf("\n");
+	/*
     printf("Preorder:"); PreorderTraversal(BST); printf("\n");
+	*/
 
     return 0;
 }
 /* 你的代码将被嵌在这里 */
+/*
 BinTree Insert( BinTree BST, ElementType X ) {
         BinTree root = BST;
     if (BST) {
@@ -80,6 +82,38 @@ BinTree Insert( BinTree BST, ElementType X ) {
     }
     return root;
 };
+*/
+
+BinTree NewNode(ElementType X) {
+	BinTree res = (BinTree)malloc(sizeof(struct TNode));
+	res->Data = X;
+	res->Left = NULL;
+	res->Right = NULL;
+	return res;
+}
+
+BinTree Insert(BinTree BST, ElementType X) {
+	if (!(BST)) return NewNode(X);
+	BinTree root = BST;
+	while (BST) {
+		if (BST->Data > X) {
+			if (BST->Left) BST = BST->Left;
+			else {
+				BST->Left = NewNode(X);
+				break;
+			}
+		} else if (BST->Data < X) {
+			if (BST->Right) BST = BST->Right;
+			else {
+				BST->Right = NewNode(X);
+				break;
+			}
+		} else {
+			break;
+		}
+	}
+	return root;
+}
 
 Position FindMin( BinTree BST ) {
     if (!(BST)) return BST;
@@ -107,6 +141,7 @@ Position Find( BinTree BST, ElementType X ) {
     }
 }
 
+/*
 BinTree LeftMost(BinTree BST) {
     while (BST->Left) {
         BST = BST->Left;
@@ -174,6 +209,64 @@ BinTree Delete( BinTree BST, ElementType X ) {
         printf("Not Found\n");
     }
     return root;
+} */
+BinTree SetNode(BinTree BST, BinTree pos) {
+	BinTree root = BST;
+	BinTree father = NULL;
+	while (BST != pos) {
+        father = BST;
+        if (pos->Data < BST->Data) BST = BST->Left;
+        else BST = BST->Right;
+	}
+	if (father) {
+		if (BST->Data < father->Data) {
+			father->Left = NULL;
+		} else {
+			father->Right = NULL;
+		}
+	}
+	return BST;
+}
+
+BinTree MoveNode(BinTree BST) {
+	BinTree res = NULL;
+	if (BST->Left) {
+		res = SetNode(BST, FindMax(BST->Left));
+	} else if (BST->Right) {
+		res = SetNode(BST, FindMin(BST->Right));
+	}
+	if (res) {
+		if (!(res->Left)) res->Left = BST->Left;
+		if (!(res->Right)) res->Right = BST->Right;
+	}
+	return res;
+}
+
+
+BinTree Delete( BinTree BST, ElementType X ) {
+    BinTree root = BST;
+    BinTree father = NULL;
+    while (BST && BST->Data != X) {
+        father = BST;
+        if (X < BST->Data) BST = BST->Left;
+        else BST = BST->Right;
+    }
+	if (BST) {
+		if (father) {
+			if (BST->Data < father->Data) {
+				father->Left = MoveNode(BST);
+			}
+			else {
+				father->Right = MoveNode(BST);
+			}
+		} else {
+			root = MoveNode(BST);
+		}
+		free(BST);
+	} else {
+        printf("Not Found\n");
+	}
+	return root;
 }
 
 void PreorderTraversal( BinTree BT ) {
