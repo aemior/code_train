@@ -32,10 +32,10 @@ class TreeSet
 			if (Ra != Rb) {
 				if (Links[Ra] < Links[Rb]) {
 					Links[Rb] += Links[Ra];
-					Links[Ra] = b-1;
+					Links[Ra] = Rb;
 				} else {
 					Links[Ra] += Links[Rb];
-					Links[Rb] = a-1;
+					Links[Rb] = Ra;
 				}
 			}
 		}
@@ -81,8 +81,8 @@ class TreeSet
 };
 
 
-int main () {
-	//freopen("test_2.txt", "r", stdin);
+int main (int argc, char *argv[]) {
+	//freopen(argv[1], "r", stdin);
 	int N;
 	cin >> N;
 	TreeSet networks(N);
