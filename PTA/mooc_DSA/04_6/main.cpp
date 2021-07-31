@@ -2,57 +2,59 @@
 
 using namespace std;
 
-void outPut(int *tree, int size, bool nl=true) {
-	bool flg = false;
-	for (int i=0; i<size; ++i) {
-		if (flg) cout << ' ';
-		else flg = true;
-		cout << *(tree+i);
-	}
-	if (nl)
-		cout << endl;
-}
-
-int fullNum(int level) {
-	if (level > 0) {
-		int res = 1;
-		int levelN = 1;
-		for (int i=1; i<level; ++i) {
-			res = res + levelN * 2;
-			levelN *= 2; 
+class CBST{
+	private:
+		int Data[1010];
+		int Size;
+	public:
+		CBST() {
+			memset(Data, 0, sizeof(Data));
+			Size = 0;
 		}
-		return res;
+		void readData(int n);
+		void Print() {
+			for (int i=0; i<Size; ++i) {
+				if (i) cout << ' ';
+				cout << Data[i];
+			}
+		}
+		void fillTree(int a, int b, int r, int *bf);
+};
+
+void CBST::fillTree(int a, int b, int r, int *bf) {
+	if (a > b+1) {
+		return;
+	} else if (a >= b) {
+		Data[r] = *(bf + a);
+		return;
 	}
-	return 0;
+	int s = b - a + 1;
+	int h = 1 + (int)log2((float)s);
+	int lh = h - 1;
+	int x = s - (pow(2, lh) - 1);
+	int maxx = pow(2, lh - 1);
+	int ls = (pow(2, lh - 1) - 1) + (x<maxx?x:maxx);
+	Data[r] = *(bf+a+ls);
+	fillTree(a, a+ls-1, 2*r+1, bf);
+	fillTree(a+ls+1, b, 2*r+2, bf);
 }
 
-int rightNum(int size) {
-	int level = 1;
-	int totalN = 1;
-	int levelN = 1;
-	while ((totalN + levelN * 2) <= size) {
-		totalN  = totalN + levelN * 2;
-		levelN = levelN * 2;
-		++level;
+void CBST::readData(int n) {
+	Size = n;
+	int *Buffer = new int[n];
+	for (int i=0; i<n; ++i) {
+		cin >> Buffer[i];
 	}
-	return fullNum(level-2);
+	sort(Buffer, Buffer+Size);
+	fillTree(0, Size-1, 0, Buffer);
 }
 
-void fillCBST(int *S, int size, int *CBST) {
-	return;
-}
-
-int main () {
-	freopen("test.txt", "r", stdin);
+int main (int argc, char *argv[]) {
+	freopen(argv[1], "r", stdin);
 	int N;
 	cin >> N;
-	int *tmp = new int[N];
-	for (int i=0; i<N; ++i) {
-		cin >> tmp[i];
-	}
-	sort(tmp, tmp+N);
-	int *CBST = new int[N];
-	fillCBST(tmp, N, CBST);
-	outPut(tmp, N, false);
+	CBST cbst;
+	cbst.readData(N);
+	cbst.Print();
 	return 0;
 }
