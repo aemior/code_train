@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cstring>
 
 using namespace std;
 
@@ -9,7 +8,7 @@ int CHAIN[1001];
 int MAX[1001];
 
 int main () {
-	freopen("test.txt", "r", stdin);
+	//freopen("test.txt", "r", stdin);
 	cin >> N;
 	for (int i=0; i<N; ++i) {
 		cin >> DATA[i];
