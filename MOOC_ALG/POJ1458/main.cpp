@@ -14,7 +14,7 @@ int l1,l2,lmin;
 int MAX[MAX_LEN][MAX_LEN];
 
 int main () {
-	freopen("test.txt", "r", stdin);
+	//freopen("test.txt", "r", stdin);
 	while(scanf("%s %s\n", s1, s2) != EOF) {
 		l1 = strlen(s1);
 		l2 = strlen(s2);
