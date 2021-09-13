@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1631543094 source:/home/ming/project/code_train/210403/210403/main.cpp
+	<iostream>
+	<bits/stdc++.h>
+
