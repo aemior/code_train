@@ -1,5 +1,11 @@
 # depslib dependency file v1.0
-1631543094 source:/home/ming/project/code_train/210403/210403/main.cpp
+1631582302 source:/home/ming/project/code_train/210403/210403/main.cpp
+	<bits/stdc++.h>
+
+1631580382 source:/home/ming/project/code_train/210403/210403/main_2.cpp
+	<bits/stdc++.h>
+
+1631579913 source:/home/ming/project/code_train/210403/210403/main_3.cpp
 	<iostream>
 	<bits/stdc++.h>
 
